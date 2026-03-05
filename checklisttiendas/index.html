@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Checklist de Tiendas</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Inter,sans-serif;background:#F3F4F6;min-height:100vh;padding:20px 12px}
+.wrap{max-width:860px;margin:0 auto}
+.tabs{display:flex;border:1px solid #E5E7EB;border-radius:10px;overflow:hidden;margin-bottom:20px}
+.tab{flex:1;padding:12px;font-weight:700;font-size:14px;border:none;cursor:pointer;transition:all .2s}
+.header{color:#fff;border-radius:14px;padding:18px 24px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+.header h1{font-size:20px;font-weight:800}
+.header small{font-size:11px;opacity:.6;display:block;margin-top:3px}
+.btn{border:none;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer}
+.tip{border-radius:10px;padding:10px 16px;margin-bottom:14px;font-size:12px;display:flex;align-items:center;gap:8px}
+.warn{background:#FFF7ED;border:1px solid #FED7AA;color:#92400E}
+.info{background:#F0FDF4;border:1px solid #BBF7D0;color:#166534}
+  .meta{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin-bottom:20px}
+.meta label{font-size:11px;font-weight:600;color:#6B7280;display:block;margin-bottom:4px}
+.meta input{border:1px solid #D1D5DB;border-radius:6px;padding:5px 8px;font-size:13px;width:100%}
+.section{border-radius:12px;margin-bottom:16px;overflow:hidden}
+.sec-head{padding:10px 16px}
+.sec-head h2{font-weight:700;font-size:14px}
+.sec-head small{font-size:11px;color:#6B7280;margin-top:2px;display:block}
+.progress-bar{display:flex;align-items:center;gap:10px;margin-top:8px}
+.bar-bg{flex:1;height:6px;background:#E5E7EB;border-radius:999px}
+.bar-fill{height:100%;border-radius:999px;transition:width .3s}
+.col-head{display:grid;grid-template-columns:1fr 150px 65px 140px;background:#F9FAFB;padding:6px 16px;border-bottom:1px solid #E5E7EB}
+.col-head span{font-size:10px;font-weight:700;color:#9CA3AF}
+.item-row{display:grid;grid-template-columns:1fr 150px 65px 140px;padding:10px 16px;align-items:center}
+.item-row p{font-size:12px;color:#111;padding-right:8px}
+.status-btns{display:flex;gap:4px;justify-content:center}
+.status-btns button{border-radius:8px;padding:4px 8px;font-size:15px;cursor:pointer;transition:all .15s;border:2px solid #E5E7EB;background:#fff;opacity:.4}
+.status-btns button.active{opacity:1}
+.pts{text-align:center}
+.pts strong{font-size:14px;font-weight:700;display:block}
+.pts small{font-size:10px;color:#9CA3AF}
+.obs-input{width:100%;border:1px solid #E5E7EB;border-radius:6px;padding:4px 6px;font-size:11px}
+.sec-foot{padding:8px 16px;display:flex;justify-content:flex-end;gap:8px;align-items:center;font-size:12px;font-weight:600}
+.summary{border-radius:12px;overflow:hidden;margin-bottom:16px}
+.summary-head{color:#fff;padding:10px 16px;font-weight:700;font-size:14px}
+.summary-body{padding:16px}
+.summary-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #F3F4F6;font-size:12px}
+.mini-bar{width:80px;height:5px;background:#E5E7EB;border-radius:999px;display:inline-block;vertical-align:middle;margin-right:8px}
+.mini-fill{height:100%;border-radius:999px}
+.total-box{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding:10px 14px;border-radius:8px}
+.scale-result{margin-top:10px;padding:12px 16px;border-radius:8px;display:flex;align-items:center;gap:12px}
+.scale-table{margin-top:12px;border-radius:10px;overflow:hidden;border:1px solid #E5E7EB}
+.scale-row{display:flex;align-items:center;gap:10px;padding:6px 14px;border-bottom:1px solid rgba(0,0,0,.05);font-size:11px}
+.scale-row:last-child{border:none}
+.action-table{width:100%;border-collapse:collapse;font-size:12px}
+.action-table th{padding:8px 12px;text-align:left;color:#6B7280;font-weight:600;border-bottom:1px solid #E5E7EB;white-space:nowrap;background:#F9FAFB}
+.action-table td{padding:6px 12px}
+.action-table input,.action-table select{width:100%;border:1px solid #E5E7EB;border-radius:6px;padding:4px 7px;font-size:12px}
+.action-foot{padding:12px 16px;display:flex;justify-content:space-between;border-top:1px solid #E5E7EB;font-size:12px;color:#6B7280}
+.submit-btn{width:100%;border:none;border-radius:10px;padding:16px;font-size:16px;font-weight:800;cursor:pointer;color:#fff;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px;letter-spacing:.3px}
+.export-btn{width:100%;border:none;border-radius:10px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;color:#fff;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px;opacity:.85}
+/* Success overlay */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:999;display:none}
+.overlay-box{background:#fff;border-radius:20px;padding:40px 32px;max-width:400px;width:90%;text-align:center}
+.overlay-box .ico{font-size:56px;margin-bottom:16px}
+.overlay-box h2{font-size:22px;font-weight:800;margin-bottom:8px}
+.overlay-box p{font-size:14px;color:#6B7280;margin-bottom:24px}
+.overlay-box button{border:none;border-radius:10px;padding:12px 28px;font-size:15px;font-weight:700;cursor:pointer;color:#fff}
+@media(max-width:600px){
+  .col-head,.item-row{grid-template-columns:1fr 110px 55px 95px}
+  .meta{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="tabs">
+    <button class="tab" id="tab-bosque" onclick="switchStore('bosque')">🌳 BOSQUE</button>
+    <button class="tab" id="tab-tempo" onclick="switchStore('tempo')">⚡ TEMPO</button>
+  </div>
+  <div id="app"></div>
+</div>
+
+<!-- Success overlay -->
+<div class="overlay" id="overlay">
+  <div class="overlay-box">
+    <div class="ico">🎉</div>
+    <h2>¡Visita enviada!</h2>
+    <p>La auditoría quedó registrada en el panel de Netlify. La dirección puede verla en cualquier momento.</p>
+    <button id="overlay-btn" onclick="closeOverlay()">Iniciar nueva visita</button>
+  </div>
+</div>
+
+<!-- Netlify hidden form (required for Netlify Forms detection) -->
+<form name="auditoria-tienda" netlify netlify-honeypot="bot-field" hidden>
+  <input name="bot-field"/>
+  <input name="tienda"/><input name="evaluador"/><input name="gerente"/><input name="fecha"/>
+  <input name="puntaje_total"/><input name="porcentaje"/><input name="resultado"/>
+  <input name="subtotal_imagen"/><input name="subtotal_visual"/><input name="subtotal_comercial"/>
+  <input name="subtotal_cliente"/><input name="subtotal_operativa"/>
+  <textarea name="detalle_items"></textarea>
+  <textarea name="observaciones"></textarea>
+  <textarea name="plan_accion"></textarea>
+</form>
+
+<script>
+const STORES={
+  bosque:{name:"BOSQUE",ref:"Ref. interna: Tugo",color:"#2D6A4F",light:"#ECFDF5",border:"#6EE7B7",
+    sections:[
+      {title:"1. Imagen y Presentación Comercial",items:[
+        ["Limpieza general: pisos, vidrios, mobiliario y techos",5],
+        ["Iluminación adecuada, sin fallas y dirigida a los ambientes",5],
+        ["Uniforme del personal completo y presentación impecable",5],
+        ["Música, aromas y temperatura acordes al concepto de tienda",5],
+        ["Señalización y material POP vigente, sin deterioro",5],
+      ]},
+      {title:"2. Visual Merchandising por Ambientes",sub:"Estilo: Familiar, cálido, showroom completo por habitación",items:[
+        ["Ambientes completamente montados sin productos sueltos fuera de contexto",6],
+        ["Cada ambiente tiene textiles, iluminación y decoración que generan sensación de hogar real",6],
+        ["Las paletas de color de cada ambiente son coherentes y diferenciadas entre sí",5],
+        ["Existe recorrido claro y flujo lógico entre ambientes sin zonas muertas",5],
+        ["Se exhiben al menos 3 estilos de vida claramente diferenciados",5],
+        ["Los productos hero y novedades están en posición de alta visibilidad",5],
+        ["Los ambientes se actualizan según temporada o colección vigente",4],
+        ["El nivel aspiracional y calidad de montaje son consistentes con el estándar",6],
+        ["Fotografías o fichas del ambiente disponibles para el cliente",3],
+      ]},
+      {title:"3. Gestión Comercial y Ventas",items:[
+        ["Equipo conoce metas KPI's del período",5],
+        ["Dominio de promociones y colecciones vigentes",5],
+        ["Seguimiento de metas quincenales y mensuales documentado",5],
+        ["Reporte de tráfico y tasa de conversión actualizados",5],
+        ["Uso de herramientas: cotizador, renders, fichas técnicas, muestras",5],
+        ["El asesor vende el ambiente completo, no solo productos individuales",5],
+      ]},
+      {title:"4. Experiencia del Cliente",items:[
+        ["Recepción cordial, proactiva y sin presión excesiva",5],
+        ["Tiempo razonable para ser atendido (< 2 min)",5],
+        ["El asesor usa el ambiente como herramienta de venta consultiva",5],
+        ["Claridad en condiciones de venta, tiempos de entrega y garantía",5],
+        ["Manejo efectivo de objeciones y cierre",5],
+        ["Seguimiento post-venta documentado cuando aplica",5],
+      ]},
+      {title:"5. Gestión Interna y Operativa",items:[
+        ["Inventario correctamente contabilizado",5],
+        ["Uso correcto del sistema de facturación",5],
+        ["Reportes de ventas y devoluciones al día",5],
+        ["Cumplimiento de horarios y turnos del personal",5],
+        ["Bodega y área de tránsito ordenadas y seguras",5],
+      ]},
+    ]},
+  tempo:{name:"TEMPO",ref:"Ref. interna: BoConcept",color:"#1D3557",light:"#EFF6FF",border:"#93C5FD",
+    sections:[
+      {title:"1. Imagen y Presentación Comercial",items:[
+        ["Limpieza general: pisos, vidrios, mobiliario y techos",5],
+        ["Iluminación adecuada, sin fallas y dirigida a los ambientes",5],
+        ["Uniforme del personal completo y presentación impecable",5],
+        ["Música, aromas y temperatura acordes al concepto de tienda",5],
+        ["Señalización y material POP vigente, sin deterioro",5],
+      ]},
+      {title:"2. Visual Merchandising por Ambientes",sub:"Estilo: Contemporáneo, minimalismo aspiracional, personalización visible",items:[
+        ["Los ambientes tienen paleta de color restringida y sofisticada (máx. 3 tonos)",6],
+        ["Cada ambiente transmite un estilo de vida específico y curado",6],
+        ["Se exhiben opciones de personalización: telas, acabados o configuraciones alternativas",5],
+        ["Existe recorrido editorial claro que comunica la propuesta de diseño",5],
+        ["Los ambientes se actualizan por colección o temporada",5],
+        ["Los productos hero están integrados en el ambiente, no en góndola aislada",5],
+        ["El mix de accesorios es coherente con el estilo, sin recargo visual",4],
+        ["El nivel aspiracional y calidad de montaje son consistentes con el estándar",6],
+        ["Lookbook o catálogo digital disponibles en el punto de venta",3],
+      ]},
+      {title:"3. Gestión Comercial y Ventas",items:[
+        ["Equipo conoce metas KPI's del período",5],
+        ["Dominio de promociones y colecciones vigentes",5],
+        ["Seguimiento de metas quincenales y mensuales documentado",5],
+        ["Reporte de tráfico y tasa de conversión actualizados",5],
+        ["Uso de herramientas: cotizador, renders, fichas técnicas, muestras",5],
+        ["El asesor vende el ambiente completo y el concepto de personalización",5],
+      ]},
+      {title:"4. Experiencia del Cliente",items:[
+        ["Recepción cordial, proactiva y sin presión excesiva",5],
+        ["Tiempo razonable para ser atendido (< 2 min)",5],
+        ["El asesor usa el ambiente y herramientas de diseño en la venta consultiva",5],
+        ["Claridad en condiciones de venta, tiempos de entrega y garantía",5],
+        ["Manejo efectivo de objeciones y cierre",5],
+        ["Seguimiento post-venta documentado cuando aplica",5],
+      ]},
+      {title:"5. Gestión Interna y Operativa",items:[
+        ["Inventario correctamente contabilizado",5],
+        ["Uso correcto del sistema de facturación",5],
+        ["Reportes de ventas y devoluciones al día",5],
+        ["Cumplimiento de horarios y turnos del personal",5],
+        ["Bodega y área de tránsito ordenadas y seguras",5],
+      ]},
+    ]}
+};
+
+const SCALE=[
+  {pct:.91,label:"EXCELENTE",desc:"Estándar de referencia cumplido",bg:"#D1FAE5",fg:"#065F46",icon:"✅"},
+  {pct:.76,label:"ACEPTABLE",desc:"Requiere ajustes menores",bg:"#FEF9C3",fg:"#713F12",icon:"🟡"},
+  {pct:.60,label:"EN RIESGO",desc:"Plan de mejora obligatorio",bg:"#FFEDD5",fg:"#7C2D12",icon:"🟠"},
+  {pct:0,  label:"CRÍTICO",  desc:"Intervención inmediata",  bg:"#FEE2E2",fg:"#7F1D1D",icon:"🔴"},
+];
+const STATUS={
+  cumple:  {label:"Cumple",   icon:"✅",color:"#065F46",pts:1.0},
+  parcial: {label:"Parcial",  icon:"🔶",color:"#92400E",pts:0.5},
+  nocumple:{label:"No Cumple",icon:"❌",color:"#991B1B",pts:0.0},
+  pending: {label:"Pendiente",icon:"⬜",color:"#9CA3AF",pts:0.0},
+};
+
+let cur="bosque";
+let state={};
+
+function initState(sk){
+  return{
+    evalName:"",manager:"",date:new Date().toISOString().slice(0,10),
+    checks:STORES[sk].sections.map(s=>s.items.map(()=>"pending")),
+    obs:STORES[sk].sections.map(s=>s.items.map(()=>"")),
+    actions:Array(4).fill(null).map(()=>({hallazgo:"",resp:"",fecha:"",estado:""}))
+  };
+}
+function load(sk){try{const d=localStorage.getItem("ck4-"+sk);return d?JSON.parse(d):initState(sk);}catch{return initState(sk);}}
+function save(sk){try{localStorage.setItem("ck4-"+sk,JSON.stringify(state[sk]));}catch{}}
+function getScale(pct){for(const s of SCALE)if(pct>=s.pct)return s;return SCALE[SCALE.length-1];}
+function calcSec(sk,si){
+  return STORES[sk].sections[si].items.reduce((acc,[,max],ii)=>({
+    obt:acc.obt+STATUS[state[sk].checks[si][ii]].pts*max,max:acc.max+max
+  }),{obt:0,max:0});
+}
+
+function switchStore(sk){
+  cur=sk;
+  document.getElementById("tab-bosque").style.background=sk==="bosque"?STORES.bosque.color:"#fff";
+  document.getElementById("tab-bosque").style.color=sk==="bosque"?"#fff":"#374151";
+  document.getElementById("tab-tempo").style.background=sk==="tempo"?STORES.tempo.color:"#fff";
+  document.getElementById("tab-tempo").style.color=sk==="tempo"?"#fff":"#374151";
+  render();
+}
+function toggleStatus(si,ii,k){
+  const v=state[cur].checks[si][ii];
+  state[cur].checks[si][ii]=v===k?"pending":k;
+  save(cur);render();
+}
+function setObs(si,ii,v){state[cur].obs[si][ii]=v;save(cur);}
+function setMeta(f,v){state[cur][f]=v;save(cur);}
+function setAction(i,f,v){state[cur].actions[i][f]=v;save(cur);}
+
+async function submitForm(){
+  const st=state[cur],s=STORES[cur];
+  const pending=st.checks.flat().filter(c=>c==="pending").length;
+  if(pending>0){
+    if(!confirm(`Hay ${pending} ítems sin evaluar. ¿Deseas enviar de todas formas?`))return;
+  }
+  if(!st.evalName||!st.manager){alert("Por favor ingresa el nombre del evaluador y el gerente.");return;}
+
+  const secTotals=s.sections.map((_,si)=>calcSec(cur,si));
+  const totalObt=secTotals.reduce((a,s)=>a+s.obt,0);
+  const totalMax=secTotals.reduce((a,s)=>a+s.max,0);
+  const pct=totalMax>0?totalObt/totalMax:0;
+  const sc=getScale(pct);
+
+  // Build detail string
+  let detalle="";
+  s.sections.forEach((sec,si)=>{
+    detalle+=`\n=== ${sec.title} ===\n`;
+    sec.items.forEach(([item,max],ii)=>{
+      const stKey=state[cur].checks[si][ii];
+      const pts=(STATUS[stKey].pts*max).toFixed(1);
+      detalle+=`[${STATUS[stKey].label}] ${item} → ${pts}/${max}\n`;
+    });
+    const {obt,max}=secTotals[si];
+    detalle+=`Subtotal: ${obt.toFixed(0)}/${max}\n`;
+  });
+
+  let obsStr="";
+  s.sections.forEach((sec,si)=>{
+    sec.items.forEach(([item],ii)=>{
+      if(state[cur].obs[si][ii]) obsStr+=`${item}: ${state[cur].obs[si][ii]}\n`;
+    });
+  });
+
+  let planStr="";
+  st.actions.forEach((a,i)=>{
+    if(a.hallazgo) planStr+=`${i+1}. ${a.hallazgo} | Resp: ${a.resp} | Fecha: ${a.fecha} | Estado: ${a.estado}\n`;
+  });
+
+  const formData=new FormData();
+  formData.append("form-name","auditoria-tienda");
+  formData.append("bot-field","");
+  formData.append("tienda", st.storeName || s.name);
+  formData.append("evaluador",st.evalName);
+  formData.append("gerente",st.manager);
+  formData.append("fecha",st.date);
+  formData.append("puntaje_total",`${totalObt.toFixed(0)} / ${totalMax}`);
+  formData.append("porcentaje",`${Math.round(pct*100)}%`);
+  formData.append("resultado",sc.label);
+  secTotals.forEach(({obt,max},i)=>{
+    const names=["imagen","visual","comercial","cliente","operativa"];
+    formData.append(`subtotal_${names[i]}`,`${obt.toFixed(0)}/${max}`);
+  });
+  formData.append("detalle_items",detalle);
+  formData.append("observaciones",obsStr||"Sin observaciones adicionales");
+  formData.append("plan_accion",planStr||"Sin plan de acción registrado");
+
+  try{
+    const btn=document.getElementById("submit-btn");
+    btn.textContent="⏳ Enviando...";btn.disabled=true;
+    const res=await fetch("/",{method:"POST",body:formData});
+    if(res.ok){
+      document.getElementById("overlay-btn").style.background=s.color;
+      document.getElementById("overlay").style.display="flex";
+    } else {
+      alert("Error al enviar. Por favor exporta el CSV como respaldo.");
+    }
+    btn.disabled=false;
+  }catch(e){
+    alert("Error de conexión. Por favor exporta el CSV como respaldo.");
+    document.getElementById("submit-btn").disabled=false;
+  }
+}
+
+function closeOverlay(){
+  document.getElementById("overlay").style.display="none";
+  state[cur]=initState(cur);
+  save(cur);render();
+}
+
+function exportCSV(){
+  const st=state[cur],s=STORES[cur];
+  const esc=v=>`"${String(v??"").replace(/"/g,'""')}"`;
+  const rows=[];
+  rows.push([esc(`VISITA — ${s.name}`),"","","","",""]);
+  rows.push([esc("Evaluador"),esc(st.evalName),esc("Gerente"),esc(st.manager),esc("Fecha"),esc(st.date)]);
+  rows.push(["","","","","",""]);
+  rows.push([esc("Sección"),esc("Criterio"),esc("Estado"),esc("Pts.Obt"),esc("Pts.Max"),esc("Observación")]);
+  let to=0,tm=0;
+  s.sections.forEach((sec,si)=>{
+    sec.items.forEach(([item,max],ii)=>{
+      const sv=STATUS[state[cur].checks[si][ii]];
+      rows.push([esc(sec.title),esc(item),esc(sv.label),esc((sv.pts*max).toFixed(1)),esc(max),esc(state[cur].obs[si][ii])]);
+    });
+    const {obt,max}=calcSec(cur,si);to+=obt;tm+=max;
+    rows.push([esc(`SUBTOTAL — ${sec.title}`),"","",esc(obt.toFixed(0)),esc(max),""]);
+    rows.push(["","","","","",""]);
+  });
+  const sc=getScale(tm>0?to/tm:0);
+  rows.push([esc("TOTAL"),"","",esc(to.toFixed(0)),esc(tm),esc(`${Math.round((to/tm)*100)}% — ${sc.label}`)]);
+  rows.push(["","","","","",""]);
+  rows.push([esc("PLAN DE ACCIÓN"),"","","","",""]);
+  st.actions.forEach(a=>rows.push([esc(a.hallazgo),esc(a.resp),esc(a.fecha),esc(a.estado),"",""]));
+  const csv="\uFEFF"+rows.map(r=>r.join(",")).join("\n");
+  const blob=new Blob([csv],{type:"text/csv;charset=utf-8;"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");a.href=url;
+  a.download=`Visita_${s.name}_${st.date||"sin-fecha"}.csv`;a.click();
+  URL.revokeObjectURL(url);
+}
+
+function render(){
+  const sk=cur,s=STORES[sk],st=state[sk];
+  const secTotals=s.sections.map((_,si)=>calcSec(sk,si));
+  const totalObt=secTotals.reduce((a,s)=>a+s.obt,0);
+  const totalMax=secTotals.reduce((a,s)=>a+s.max,0);
+  const pct=totalMax>0?totalObt/totalMax:0;
+  const sc=getScale(pct);
+  const pending=st.checks.flat().filter(c=>c==="pending").length;
+
+  let html=`
+  <div class="header" style="background:${s.color}">
+    <div><h1>TIENDA ${s.name}</h1><small>${s.ref}</small></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <button class="btn" onclick="exportCSV()" style="background:rgba(255,255,255,.15);color:#fff">⬇️ CSV</button>
+      <button class="btn" onclick="if(confirm('¿Borrar todos los datos?')){state[cur]=initState(cur);save(cur);render()}" style="background:rgba(255,255,255,.1);color:#fff">🗑</button>
+    </div>
+  </div>
+  <div class="tip info">📋 Completa todos los ítems y presiona <strong>"Enviar visita a Netlify"</strong> al final para guardar la auditoría en el panel central.</div>
+  ${pending>0?`<div class="tip warn">⚠️ <strong>${pending} ítem${pending>1?"s":""} sin evaluar.</strong> Usa ✅ 🔶 ❌ en cada criterio.</div>`:""}
+  <div class="meta">
+    <div><label>Nombre de la Tienda</label><input value="${st.storeName||s.name}" oninput="setMeta('storeName',this.value)" placeholder="Ej: Bosque Norte, Tempo Centro..."/></div>
+    <div><label>Evaluador</label><input value="${st.evalName}" oninput="setMeta('evalName',this.value)" placeholder="Nombre evaluador"/></div>
+    <div><label>Gerente de Tienda</label><input value="${st.manager}" oninput="setMeta('manager',this.value)" placeholder="Nombre gerente"/></div>
+    <div><label>Fecha de Visita</label><input type="date" value="${st.date}" oninput="setMeta('date',this.value)"/></div>
+  </div>`;
+
+  s.sections.forEach((sec,si)=>{
+    const {obt,max}=secTotals[si];
+    const sp=max>0?obt/max:0;
+    html+=`
+    <div class="section" style="border:1px solid ${s.border}">
+      <div class="sec-head" style="background:${s.light};border-bottom:1px solid ${s.border}">
+        <h2 style="color:${s.color}">${sec.title}</h2>
+        ${sec.sub?`<small>${sec.sub}</small>`:""}
+        <div class="progress-bar">
+          <div class="bar-bg"><div class="bar-fill" style="width:${sp*100}%;background:${s.color}"></div></div>
+          <strong style="font-size:12px;color:${s.color}">${obt.toFixed(0)}/${max}</strong>
+        </div>
+      </div>
+      <div class="col-head">
+        <span>Criterio</span><span style="text-align:center">Estado</span><span style="text-align:center">Pts.</span><span style="text-align:center">Observaciones</span>
+      </div>`;
+    sec.items.forEach(([item,max],ii)=>{
+      const stKey=st.checks[si][ii];
+      const stVal=STATUS[stKey];
+      const rowBg=ii%2===0?"#fff":"#FAFAFA";
+      html+=`
+      <div class="item-row" style="background:${rowBg};border-bottom:${ii<sec.items.length-1?"1px solid #F3F4F6":"none"}">
+        <p>${item}</p>
+        <div class="status-btns">
+          ${["cumple","parcial","nocumple"].map(k=>`<button class="${stKey===k?"active":""}"
+            style="${stKey===k?`border-color:${STATUS[k].color};background:${k==="cumple"?"#D1FAE5":k==="parcial"?"#FEF3C7":"#FEE2E2"}`:"border-color:#E5E7EB;background:#fff"}"
+            onclick="toggleStatus(${si},${ii},'${k}')" title="${STATUS[k].label}">${STATUS[k].icon}</button>`).join("")}
+        </div>
+        <div class="pts"><strong style="color:${stVal.color}">${(stVal.pts*max).toFixed(1)}</strong><small>/ ${max}</small></div>
+        <input class="obs-input" value="${st.obs[si][ii]}" oninput="setObs(${si},${ii},this.value)" placeholder="Notas..."/>
+      </div>`;
+    });
+    html+=`<div class="sec-foot" style="background:${s.light};color:${s.color}">Subtotal: ${obt.toFixed(0)} / ${max} <span style="color:#6B7280;font-weight:400">(${Math.round(sp*100)}%)</span></div>
+    </div>`;
+  });
+
+  // Summary
+  html+=`<div class="summary" style="border:2px solid ${s.color}">
+    <div class="summary-head" style="background:${s.color}">RESUMEN EJECUTIVO</div>
+    <div class="summary-body">`;
+  s.sections.forEach((sec,si)=>{
+    const {obt,max}=secTotals[si];
+    const sp=max>0?obt/max:0;
+    html+=`<div class="summary-row"><span>${sec.title}</span>
+      <span><span class="mini-bar"><span class="mini-fill" style="width:${sp*100}%;background:${s.color};display:block;height:100%"></span></span>
+      <strong style="color:${s.color}">${obt.toFixed(0)} / ${max}</strong></span></div>`;
+  });
+  html+=`<div class="total-box" style="background:${s.light}">
+    <strong style="font-size:14px;color:${s.color}">PUNTAJE TOTAL</strong>
+    <strong style="font-size:20px;color:${s.color}">${totalObt.toFixed(0)} / ${totalMax}</strong>
+  </div>
+  <div class="scale-result" style="background:${sc.bg}">
+    <span style="font-size:28px">${sc.icon}</span>
+    <div><strong style="font-size:15px;color:${sc.fg}">${sc.label}</strong>
+    <div style="font-size:12px;color:${sc.fg};opacity:.85">${sc.desc} · ${Math.round(pct*100)}%</div></div>
+  </div>
+  <div class="scale-table">`;
+  SCALE.forEach((sl,i)=>{
+    const hi=i===0?totalMax:Math.round(SCALE[i-1].pct*totalMax)-1;
+    const lo=i===SCALE.length-1?0:Math.round(sl.pct*totalMax);
+    html+=`<div class="scale-row" style="background:${sl.bg};color:${sl.fg}">
+      <span>${sl.icon}</span><span style="font-weight:700;min-width:80px">${lo}–${hi} pts</span>
+      <span><strong>${sl.label}</strong> — ${sl.desc}</span></div>`;
+  });
+  html+=`</div></div></div>`;
+
+  // Action plan
+  html+=`<div class="section" style="border:1px solid #E5E7EB;margin-bottom:16px">
+    <div class="summary-head" style="background:${s.color}">PLAN DE ACCIÓN</div>
+    <div style="overflow-x:auto"><table class="action-table"><thead><tr>
+      <th>Hallazgo / Oportunidad de Mejora</th><th>Responsable</th><th>Fecha Compromiso</th><th>Estado</th>
+    </tr></thead><tbody>`;
+  st.actions.forEach((row,i)=>{
+    const bg=i%2===0?"#fff":"#FAFAFA";
+    html+=`<tr style="background:${bg}">
+      <td><input value="${row.hallazgo}" oninput="setAction(${i},'hallazgo',this.value)" placeholder="Describir hallazgo..."/></td>
+      <td><input value="${row.resp}" oninput="setAction(${i},'resp',this.value)" placeholder="Nombre..."/></td>
+      <td><input type="date" value="${row.fecha}" oninput="setAction(${i},'fecha',this.value)"/></td>
+      <td><select onchange="setAction(${i},'estado',this.value)">
+        <option value="" ${!row.estado?"selected":""}>-- Estado --</option>
+        <option ${row.estado==="Pendiente"?"selected":""}>Pendiente</option>
+        <option ${row.estado==="En progreso"?"selected":""}>En progreso</option>
+        <option ${row.estado==="Resuelto"?"selected":""}>Resuelto</option>
+      </select></td></tr>`;
+  });
+  html+=`</tbody></table></div>
+    <div class="action-foot"><span>Firma Evaluador: _______________________</span><span>Firma Gerente: _______________________</span></div>
+  </div>
+
+  <!-- SUBMIT BUTTON -->
+  <button id="submit-btn" class="submit-btn" style="background:${s.color}" onclick="submitForm()">
+    📤 Enviar visita a Netlify
+  </button>
+  <button class="export-btn" style="background:#6B7280" onclick="exportCSV()">
+    ⬇️ También exportar como CSV (respaldo)
+  </button>
+  <p style="text-align:center;font-size:11px;color:#9CA3AF;margin-top:10px">
+    El botón "Enviar" guarda la auditoría en el panel de Netlify · El CSV es un respaldo local
+  </p>`;
+
+  document.getElementById("app").innerHTML=html;
+}
+
+state.bosque=load("bosque");
+state.tempo=load("tempo");
+switchStore("bosque");
+</script>
+</body>
+</html>

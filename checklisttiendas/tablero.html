@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Tablero Auditorías</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:#0F172A;min-height:100vh;padding:20px 16px}
+.wrap{max-width:1100px;margin:0 auto}
+.header{background:linear-gradient(135deg,#1e3a5f,#2D6A4F);border-radius:16px;padding:20px 28px;color:#fff;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;box-shadow:0 8px 32px rgba(0,0,0,.3)}
+.header h1{font-size:22px;font-weight:800;letter-spacing:-.3px}
+.header small{font-size:11px;opacity:.6;display:block;margin-top:3px}
+.header-btns{display:flex;gap:8px;align-items:center}
+.refresh-btn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:10px;padding:8px 16px;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s}
+.refresh-btn:hover{background:rgba(255,255,255,.25)}
+.tabs{display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap;background:#1E293B;padding:6px;border-radius:14px}
+.tab{border:none;border-radius:10px;padding:9px 16px;font-size:12px;font-weight:700;cursor:pointer;background:transparent;color:#64748B;transition:all .2s;flex:1;min-width:80px}
+.tab.active{background:linear-gradient(135deg,#2D6A4F,#1e3a5f);color:#fff;box-shadow:0 4px 12px rgba(0,0,0,.3)}
+.tab:hover:not(.active){background:#334155;color:#CBD5E1}
+.filters{background:#1E293B;border:1px solid #334155;border-radius:14px;padding:16px 20px;margin-bottom:20px}
+.filters h3{font-size:12px;font-weight:700;color:#94A3B8;margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px}
+.filter-row{display:flex;gap:10px;flex-wrap:wrap}
+.filter-group label{font-size:10px;font-weight:700;color:#64748B;display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px}
+.filter-group select{border:1px solid #334155;border-radius:8px;padding:7px 12px;font-size:12px;background:#0F172A;color:#CBD5E1;cursor:pointer;min-width:130px;outline:none}
+.clear-btn{border:1px solid #334155;border-radius:8px;padding:7px 14px;font-size:12px;background:#0F172A;cursor:pointer;color:#64748B;font-weight:600}
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px}
+.kpi{background:#1E293B;border:1px solid #334155;border-radius:14px;padding:16px 18px}
+.kpi .ico{font-size:24px;margin-bottom:6px}
+.kpi .val{font-size:24px;font-weight:800;color:#F1F5F9}
+.kpi .lbl{font-size:11px;font-weight:600;color:#94A3B8;margin-top:2px}
+.kpi .sub{font-size:10px;color:#475569;margin-top:2px}
+.card{background:#1E293B;border:1px solid #334155;border-radius:14px;overflow:hidden;margin-bottom:16px}
+.card-head{padding:12px 20px;font-weight:700;font-size:13px;color:#fff}
+.card-body{padding:18px 20px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{padding:10px 14px;text-align:left;color:#64748B;font-weight:600;border-bottom:1px solid #334155;background:#0F172A;white-space:nowrap;font-size:11px;text-transform:uppercase;letter-spacing:.4px}
+td{padding:10px 14px;border-bottom:1px solid #1E293B;color:#CBD5E1}
+tr:last-child td{border:none}
+tr:nth-child(even) td{background:#243044}
+tr:hover td{background:#2D3F5A}
+.badge{border-radius:20px;padding:4px 10px;font-size:10px;font-weight:700;white-space:nowrap}
+.bar-wrap{height:6px;background:#334155;border-radius:999px;margin-top:6px}
+.bar-fill{height:100%;border-radius:999px;transition:width .4s}
+.store-card{background:#1E293B;border:1px solid #334155;border-radius:14px;overflow:hidden}
+.store-card-head{padding:14px 18px;display:flex;justify-content:space-between;align-items:center}
+.store-card-body{padding:16px 18px}
+.critico-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #334155}
+.critico-row:last-child{border:none}
+.critico-num{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;flex-shrink:0}
+.accion-estado{border-radius:20px;padding:3px 10px;font-size:10px;font-weight:700}
+.loading{text-align:center;padding:80px;color:#64748B}
+.loading .ico{font-size:56px;margin-bottom:16px}
+.error-box{background:#2D1B1B;border:1px solid #7F1D1D;border-radius:14px;padding:24px;color:#FCA5A5;text-align:center;margin-bottom:16px}
+.empty{text-align:center;padding:48px;color:#64748B;font-size:13px}
+@media(max-width:700px){.grid2{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <div>
+      <h1>📊 Tablero de Auditorías</h1>
+      <small id="last-update">Cargando datos...</small>
+    </div>
+    <div class="header-btns">
+      <button class="refresh-btn" onclick="loadData()">🔄 Actualizar</button>
+      <a href="/" style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:10px;padding:8px 14px;font-size:12px;font-weight:700;text-decoration:none">📋 Checklist</a>
+    </div>
+  </div>
+  <div id="main">
+    <div class="loading"><div class="ico">⏳</div><p>Cargando auditorías...</p></div>
+  </div>
+</div>
+<script>
+const BC="#2D6A4F", TC="#1e3a5f";
+const SCALE=[
+  {pct:91,label:"EXCELENTE",bg:"#064E3B",fg:"#6EE7B7",icon:"✅"},
+  {pct:76,label:"ACEPTABLE",bg:"#422006",fg:"#FCD34D",icon:"🟡"},
+  {pct:60,label:"EN RIESGO", bg:"#431407",fg:"#FDBA74",icon:"🟠"},
+  {pct:0, label:"CRÍTICO",   bg:"#450A0A",fg:"#FCA5A5",icon:"🔴"},
+];
+const SEC_LABELS=["Imagen","Visual","Comercial","Cliente","Operativa"];
+const SEC_MAX=[25,45,30,30,25];
+let ALL_DATA=[], filters={tienda:"",evaluador:"",gerente:"",mes:"",resultado:""}, activeTab="resumen", charts={};
+
+function getScale(pct){for(const s of SCALE)if(pct>=s.pct)return s;return SCALE[SCALE.length-1];}
+function badge(r){const s=SCALE.find(x=>x.label===r?.toUpperCase());return s?`<span class="badge" style="background:${s.bg};color:${s.fg}">${s.icon} ${r}</span>`:`<span class="badge" style="background:#1E293B;color:#64748B">—</span>`;}
+function pctNum(str){return parseFloat((str||"0").replace("%",""))||0;}
+function secVal(r,key){const v=r[key]||"";const m=v.match(/^(\d+)/);return m?parseInt(m[1]):0;}
+
+async function loadData(){
+  document.getElementById("last-update").textContent="Actualizando...";
+  try{
+    // Llama a la función serverless — sin token visible
+    const res=await fetch("/.netlify/functions/auditorias");
+    if(!res.ok) throw new Error(`Error ${res.status}`);
+    const submissions=await res.json();
+    if(submissions.error) throw new Error(submissions.error);
+
+    ALL_DATA=submissions.map(s=>({
+      id:s.id, tienda:s.data?.tienda||"", evaluador:s.data?.evaluador||"",
+      gerente:s.data?.gerente||"", fecha:s.data?.fecha||s.created_at?.slice(0,10)||"",
+      pct:pctNum(s.data?.porcentaje), resultado:s.data?.resultado||"",
+      imagen:secVal(s.data,"subtotal_imagen"), visual:secVal(s.data,"subtotal_visual"),
+      comercial:secVal(s.data,"subtotal_comercial"), cliente:secVal(s.data,"subtotal_cliente"),
+      operativa:secVal(s.data,"subtotal_operativa"), detalle:s.data?.detalle_items||"",
+      plan:s.data?.plan_accion||"",
+    })).sort((a,b)=>a.fecha.localeCompare(b.fecha));
+
+    document.getElementById("last-update").textContent=`${ALL_DATA.length} auditorías · ${new Date().toLocaleTimeString()}`;
+    renderAll();
+  }catch(err){
+    document.getElementById("last-update").textContent="Error al cargar";
+    document.getElementById("main").innerHTML=`
+      <div class="error-box">
+        <div style="font-size:36px;margin-bottom:10px">⚠️</div>
+        <strong>No se pudieron cargar los datos</strong>
+        <p style="margin-top:6px;font-size:12px;opacity:.8">${err.message}</p>
+        <p style="margin-top:8px;font-size:11px;opacity:.6">Verifica que las variables de entorno estén configuradas en Netlify</p>
+      </div>`;
+  }
+}
+
+function getFiltered(){
+  return ALL_DATA.filter(d=>{
+    if(filters.tienda    && !d.tienda.includes(filters.tienda)) return false;
+    if(filters.evaluador && d.evaluador!==filters.evaluador)   return false;
+    if(filters.gerente   && d.gerente!==filters.gerente)       return false;
+    if(filters.mes       && !d.fecha.startsWith(filters.mes))  return false;
+    if(filters.resultado && d.resultado!==filters.resultado)   return false;
+    return true;
+  });
+}
+
+function renderAll(){
+  const data=getFiltered();
+  const evaluadores=[...new Set(ALL_DATA.map(d=>d.evaluador))].filter(Boolean);
+  const gerentes=[...new Set(ALL_DATA.map(d=>d.gerente))].filter(Boolean);
+  const meses=[...new Set(ALL_DATA.map(d=>d.fecha.slice(0,7)))].sort();
+  const tiendas=[...new Set(ALL_DATA.map(d=>d.tienda))].filter(Boolean);
+  const avgPct=data.length?Math.round(data.reduce((a,d)=>a+d.pct,0)/data.length):0;
+  const pendientes=data.flatMap(d=>parsePlan(d.plan)).filter(a=>a.estado==="Pendiente").length;
+  const fOpt=(arr,val)=>arr.map(v=>`<option ${val===v?"selected":""}>${v}</option>`).join("");
+
+  let html=`
+  <div class="filters"><h3>🔍 Filtros</h3>
+    <div class="filter-row">
+      <div class="filter-group"><label>Tienda</label><select onchange="filters.tienda=this.value;renderAll()"><option value="">Todas</option>${fOpt(tiendas,filters.tienda)}</select></div>
+      <div class="filter-group"><label>Evaluador</label><select onchange="filters.evaluador=this.value;renderAll()"><option value="">Todos</option>${fOpt(evaluadores,filters.evaluador)}</select></div>
+      <div class="filter-group"><label>Gerente</label><select onchange="filters.gerente=this.value;renderAll()"><option value="">Todos</option>${fOpt(gerentes,filters.gerente)}</select></div>
+      <div class="filter-group"><label>Mes</label><select onchange="filters.mes=this.value;renderAll()"><option value="">Todos</option>${fOpt(meses,filters.mes)}</select></div>
+      <div class="filter-group"><label>Resultado</label><select onchange="filters.resultado=this.value;renderAll()"><option value="">Todos</option>${SCALE.map(s=>`<option ${filters.resultado===s.label?"selected":""}>${s.label}</option>`).join("")}</select></div>
+      <div class="filter-group" style="display:flex;align-items:flex-end"><button class="clear-btn" onclick="filters={tienda:'',evaluador:'',gerente:'',mes:'',resultado:''};renderAll()">✕ Limpiar</button></div>
+    </div>
+  </div>
+  <div class="tabs">
+    ${["resumen","evolucion","comparativo","criticos","acciones","historial"].map(t=>`
+      <button class="tab ${activeTab===t?"active":""}" onclick="activeTab='${t}';renderAll()">
+        ${{resumen:"📊 Resumen",evolucion:"📈 Evolución",comparativo:"⚖️ Comparativo",criticos:"🚨 Críticos",acciones:"📝 Acciones",historial:"📋 Historial"}[t]}
+      </button>`).join("")}
+  </div>`;
+
+  if(!data.length){html+=`<div class="card"><div class="card-body"><div class="empty">🔍 Sin resultados</div></div></div>`;document.getElementById("main").innerHTML=html;return;}
+
+  const sc=getScale(avgPct);
+  html+=`<div class="kpis">${[
+    {ico:"📋",val:data.length,lbl:"Auditorías",sub:"en selección"},
+    {ico:"📊",val:avgPct+"%",lbl:"Promedio",sub:"puntaje general",color:sc.fg},
+    {ico:"🌳",val:data.filter(d=>d.tienda.includes("BOSQUE")).length,lbl:"Bosque",sub:"visitas"},
+    {ico:"⚡",val:data.filter(d=>d.tienda.includes("TEMPO")).length,lbl:"Tempo",sub:"visitas"},
+    {ico:"🔴",val:pendientes,lbl:"Pendientes",sub:"en plan de acción",color:"#FCA5A5"},
+  ].map(k=>`<div class="kpi"><div class="ico">${k.ico}</div><div class="val" style="color:${k.color||"#F1F5F9"}">${k.val}</div><div class="lbl">${k.lbl}</div><div class="sub">${k.sub}</div></div>`).join("")}</div>`;
+
+  if(activeTab==="resumen")     html+=renderResumen(data);
+  if(activeTab==="evolucion")   html+=renderEvolucion(data);
+  if(activeTab==="comparativo") html+=renderComparativo(data);
+  if(activeTab==="criticos")    html+=renderCriticos(data);
+  if(activeTab==="acciones")    html+=renderAcciones(data);
+  if(activeTab==="historial")   html+=renderHistorial(data);
+
+  document.getElementById("main").innerHTML=html;
+  if(activeTab==="evolucion")   drawEvolucion(data);
+  if(activeTab==="comparativo") drawComparativo(data);
+}
+
+function renderResumen(data){
+  const byTienda={};
+  data.forEach(d=>{const t=d.tienda||"Sin tienda";if(!byTienda[t])byTienda[t]=[];byTienda[t].push(d);});
+  let html=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px">`;
+  Object.entries(byTienda).forEach(([tienda,items])=>{
+    const last=items[items.length-1], sc=getScale(last.pct), color=tienda.includes("BOSQUE")?BC:TC;
+    html+=`<div class="store-card">
+      <div class="store-card-head" style="background:linear-gradient(135deg,${color},${color}99)">
+        <div><div style="font-size:16px;font-weight:800;color:#fff">${tienda.includes("BOSQUE")?"🌳":"⚡"} ${tienda}</div>
+        <div style="font-size:10px;color:rgba(255,255,255,.6);margin-top:3px">${last.fecha} · ${last.evaluador}</div></div>
+        <div style="font-size:28px;font-weight:800;color:#fff">${last.pct}%</div>
+      </div>
+      <div class="store-card-body">
+        <div class="bar-wrap"><div class="bar-fill" style="width:${last.pct}%;background:linear-gradient(90deg,${color},${color}88)"></div></div>
+        <div style="display:flex;justify-content:space-between;margin:12px 0 10px">${badge(last.resultado)}<span style="font-size:11px;color:#64748B">Gte: ${last.gerente}</span></div>
+        ${SEC_LABELS.map((l,i)=>`<div style="display:flex;justify-content:space-between;font-size:11px;padding:4px 0;border-bottom:1px solid #334155;color:#94A3B8"><span>${l}</span><span style="font-weight:700;color:#CBD5E1">${[last.imagen,last.visual,last.comercial,last.cliente,last.operativa][i]}/${SEC_MAX[i]}</span></div>`).join("")}
+        ${items.length>1?`<div style="font-size:10px;color:#475569;margin-top:10px">📅 ${items.length} visitas registradas</div>`:""}
+      </div></div>`;
+  });
+  return html+"</div>";
+}
+function renderEvolucion(data){return `<div class="card"><div class="card-head" style="background:linear-gradient(135deg,#1e3a5f,#2D6A4F)">📈 Evolución de puntajes por mes</div><div class="card-body"><canvas id="chartEvo" height="100"></canvas></div></div>`;}
+function drawEvolucion(data){
+  const meses=[...new Set(data.map(d=>d.fecha.slice(0,7)))].sort();
+  const bosque=meses.map(m=>{const f=data.filter(d=>d.tienda.includes("BOSQUE")&&d.fecha.startsWith(m));return f.length?Math.round(f.reduce((a,d)=>a+d.pct,0)/f.length):null;});
+  const tempo= meses.map(m=>{const f=data.filter(d=>d.tienda.includes("TEMPO") &&d.fecha.startsWith(m));return f.length?Math.round(f.reduce((a,d)=>a+d.pct,0)/f.length):null;});
+  const ctx=document.getElementById("chartEvo");if(!ctx)return;
+  if(charts.evo)charts.evo.destroy();
+  Chart.defaults.color="#94A3B8";
+  charts.evo=new Chart(ctx,{type:"line",data:{labels:meses.map(m=>m.replace(/20\d\d-/,"")),
+    datasets:[{label:"BOSQUE",data:bosque,borderColor:"#34D399",backgroundColor:"#34D39922",borderWidth:3,pointRadius:6,pointBackgroundColor:"#34D399",tension:.3,spanGaps:true},
+              {label:"TEMPO", data:tempo, borderColor:"#60A5FA",backgroundColor:"#60A5FA22",borderWidth:3,pointRadius:6,pointBackgroundColor:"#60A5FA",tension:.3,spanGaps:true}]},
+    options:{responsive:true,plugins:{legend:{position:"top",labels:{color:"#94A3B8"}}},scales:{y:{min:40,max:100,ticks:{callback:v=>v+"%",color:"#64748B"},grid:{color:"#1E293B"}},x:{ticks:{color:"#64748B"},grid:{color:"#1E293B"}}}}});
+}
+function renderComparativo(data){
+  return `<div class="grid2">
+    <div class="card"><div class="card-head" style="background:linear-gradient(135deg,#1e3a5f,#2D6A4F)">📊 Puntaje por sección</div><div class="card-body"><canvas id="chartBar" height="160"></canvas></div></div>
+    <div class="card"><div class="card-head" style="background:linear-gradient(135deg,#1e3a5f,#2D6A4F)">🏆 Ranking de visitas</div><div class="card-body">
+      ${[...data].sort((a,b)=>b.pct-a.pct).slice(0,6).map((d,i)=>`
+        <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #334155">
+          <span style="font-size:18px">${["🥇","🥈","🥉","4️⃣","5️⃣","6️⃣"][i]||i+1}</span>
+          <div style="flex:1"><div style="font-size:12px;font-weight:700;color:${d.tienda.includes("BOSQUE")?"#34D399":"#60A5FA"}">${d.tienda}</div>
+          <div style="font-size:10px;color:#64748B">${d.fecha} · ${d.evaluador}</div></div>
+          <strong style="font-size:15px;color:#F1F5F9">${d.pct}%</strong>
+        </div>`).join("")}
+    </div></div></div>`;
+}
+function drawComparativo(data){
+  const bosqueAvg=SEC_LABELS.map((_,i)=>{const f=data.filter(d=>d.tienda.includes("BOSQUE"));return f.length?Math.round(f.reduce((a,d)=>a+[d.imagen,d.visual,d.comercial,d.cliente,d.operativa][i],0)/f.length):0;});
+  const tempoAvg= SEC_LABELS.map((_,i)=>{const f=data.filter(d=>d.tienda.includes("TEMPO")); return f.length?Math.round(f.reduce((a,d)=>a+[d.imagen,d.visual,d.comercial,d.cliente,d.operativa][i],0)/f.length):0;});
+  const ctx=document.getElementById("chartBar");if(!ctx)return;
+  if(charts.bar)charts.bar.destroy();
+  Chart.defaults.color="#94A3B8";
+  charts.bar=new Chart(ctx,{type:"bar",data:{labels:SEC_LABELS,
+    datasets:[{label:"BOSQUE",data:bosqueAvg,backgroundColor:"#34D39988",borderRadius:6},{label:"TEMPO",data:tempoAvg,backgroundColor:"#60A5FA88",borderRadius:6}]},
+    options:{responsive:true,plugins:{legend:{position:"top",labels:{color:"#94A3B8"}}},scales:{y:{beginAtZero:true,ticks:{color:"#64748B"},grid:{color:"#1E293B"}},x:{ticks:{color:"#64748B"},grid:{color:"#1E293B"}}}}});
+}
+function renderCriticos(data){
+  const cnt={};
+  data.forEach(d=>(d.detalle||"").split("\n").forEach(line=>{
+    if(line.includes("[No Cumple]")||line.includes("[Parcial]")){const m=line.match(/\](.*?)→/);if(m)cnt[m[1].trim()]=(cnt[m[1].trim()]||0)+1;}
+  }));
+  const top=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  if(!top.length) return `<div class="card"><div class="card-body"><div class="empty">✅ Sin puntos críticos</div></div></div>`;
+  return `<div class="card"><div class="card-head" style="background:linear-gradient(135deg,#7F1D1D,#991B1B)">🚨 Ítems más fallados</div><div class="card-body">
+    ${top.map(([item,n],i)=>`<div class="critico-row">
+      <div class="critico-num" style="background:${i<2?"#450A0A":i<4?"#431407":"#422006"};color:${i<2?"#FCA5A5":i<4?"#FDBA74":"#FCD34D"}">${i+1}</div>
+      <div style="flex:1"><div style="font-size:12px;font-weight:600;color:#CBD5E1">${item}</div>
+      <div class="bar-wrap"><div class="bar-fill" style="width:${(n/top[0][1])*100}%;background:${i<2?"#DC2626":i<4?"#EA580C":"#CA8A04"}"></div></div></div>
+      <strong style="font-size:14px;color:#F1F5F9">${n}x</strong>
+    </div>`).join("")}
+  </div></div>`;
+}
+function parsePlan(planStr){
+  if(!planStr)return[];
+  return planStr.split("\n").filter(l=>l.trim()).map(l=>{
+    const m=l.match(/^\d+\.\s*(.*?)\s*\|\s*Resp:\s*(.*?)\s*\|\s*Fecha:\s*(.*?)\s*\|\s*Estado:\s*(.*)/);
+    return m?{hallazgo:m[1],resp:m[2],fecha:m[3],estado:m[4]}:{hallazgo:l,resp:"",fecha:"",estado:""};
+  });
+}
+function renderAcciones(data){
+  const estadoStyle={Resuelto:{bg:"#064E3B",fg:"#6EE7B7"},"En progreso":{bg:"#422006",fg:"#FCD34D"},Pendiente:{bg:"#450A0A",fg:"#FCA5A5"}};
+  const rows=data.flatMap(d=>parsePlan(d.plan).map(a=>({...a,tienda:d.tienda,fecha_visita:d.fecha,gerente:d.gerente})));
+  if(!rows.length)return `<div class="card"><div class="card-body"><div class="empty">Sin acciones registradas</div></div></div>`;
+  const pend=rows.filter(r=>r.estado==="Pendiente").length, prog=rows.filter(r=>r.estado==="En progreso").length, res=rows.filter(r=>r.estado==="Resuelto").length;
+  return `<div class="kpis" style="margin-bottom:16px">${[["✅","Resueltas",res,"#6EE7B7"],["⏳","En progreso",prog,"#FCD34D"],["🔴","Pendientes",pend,"#FCA5A5"],["📝","Total",rows.length,"#CBD5E1"]].map(([i,l,v,c])=>`<div class="kpi"><div class="ico">${i}</div><div class="val" style="color:${c}">${v}</div><div class="lbl">${l}</div></div>`).join("")}</div>
+  <div class="card"><div class="card-head" style="background:linear-gradient(135deg,#1e3a5f,#2D6A4F)">📝 Plan de Acción</div>
+    <div style="overflow-x:auto"><table><thead><tr><th>Tienda</th><th>Fecha</th><th>Gerente</th><th>Hallazgo</th><th>Responsable</th><th>Compromiso</th><th>Estado</th></tr></thead>
+    <tbody>${rows.map(r=>{const es=estadoStyle[r.estado]||{bg:"#1E293B",fg:"#64748B"};return`<tr>
+      <td style="font-weight:700;color:${r.tienda.includes("BOSQUE")?"#34D399":"#60A5FA"}">${r.tienda.includes("BOSQUE")?"🌳":"⚡"} ${r.tienda}</td>
+      <td>${r.fecha_visita}</td><td>${r.gerente}</td><td style="max-width:200px">${r.hallazgo}</td><td>${r.resp}</td><td>${r.fecha}</td>
+      <td><span class="accion-estado" style="background:${es.bg};color:${es.fg}">${r.estado||"—"}</span></td>
+    </tr>`;}).join("")}</tbody></table></div></div>`;
+}
+function renderHistorial(data){
+  return `<div class="card"><div class="card-head" style="background:linear-gradient(135deg,#1e3a5f,#2D6A4F)">📋 Historial — ${data.length} visita${data.length!==1?"s":""}</div>
+    <div style="overflow-x:auto"><table><thead><tr><th>Fecha</th><th>Tienda</th><th>Evaluador</th><th>Gerente</th><th>Imagen</th><th>Visual</th><th>Comercial</th><th>Cliente</th><th>Operativa</th><th>Total</th><th>Resultado</th></tr></thead>
+    <tbody>${[...data].reverse().map(d=>`<tr>
+      <td>${d.fecha}</td><td style="font-weight:700;color:${d.tienda.includes("BOSQUE")?"#34D399":"#60A5FA"}">${d.tienda.includes("BOSQUE")?"🌳":"⚡"} ${d.tienda}</td>
+      <td>${d.evaluador}</td><td>${d.gerente}</td>
+      <td style="text-align:center">${d.imagen}/25</td><td style="text-align:center">${d.visual}/45</td>
+      <td style="text-align:center">${d.comercial}/30</td><td style="text-align:center">${d.cliente}/30</td>
+      <td style="text-align:center">${d.operativa}/25</td>
+      <td style="font-weight:800;color:#F1F5F9">${d.pct}%</td><td>${badge(d.resultado)}</td>
+    </tr>`).join("")}</tbody></table></div></div>`;
+}
+
+loadData();
+</script>
+</body>
+</html>
